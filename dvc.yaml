@@ -1,0 +1,39 @@
+stages:
+  raw_dataset_creation:
+    cmd: python src/data/load_data.py --config=params.yaml
+    deps:
+    - src/data/load_data.py
+    - data/external/sms.tsv
+    outs:
+    - data/raw/train.csv
+
+  split_data:
+    cmd: python src/data/split_data.py --config=params.yaml
+    deps:
+    - src/data/split_data.py
+    - data/raw/train.csv
+    outs:
+    - data/processed/spam_train.csv
+    - data/processed/spam_test.csv
+
+  model_train:
+    cmd: python src/models/train_model.py --config=params.yaml
+    deps:
+    - data/processed/spam_train.csv
+    - data/processed/spam_test.csv
+    - src/models/train_model.py
+    params:
+    - random_forest.max_depth
+    - random_forest.n_estimators
+    - count_vectorizer.max_features
+
+  log_production_model:
+    cmd: python src/models/model_selection.py --config=params.yaml
+    deps:
+    - src/models/model_selection.py
+    params:
+    - random_forest.max_depth
+    - random_forest.n_estimators
+    - count_vectorizer.max_features
+    outs:
+    - models/model.joblib

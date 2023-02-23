@@ -1,0 +1,63 @@
+schema: '2.0'
+stages:
+  raw_dataset_creation:
+    cmd: python src/data/load_data.py --config=params.yaml
+    deps:
+    - path: data/external/sms.tsv
+      md5: 1949b64a224790d01335c2bf8a0e48b2
+      size: 477907
+    - path: src/data/load_data.py
+      md5: 74c7902b75ccaeca1671d242830697f1
+      size: 1544
+    outs:
+    - path: data/raw/train.csv
+      md5: 4ac446c97f68184079f242aff16f3f30
+      size: 468915
+  log_production_model:
+    cmd: python src/models/model_selection.py --config=params.yaml
+    deps:
+    - path: src/models/model_selection.py
+      md5: 278a3cb08d973ef41042b4a19f5b1fec
+      size: 1678
+    params:
+      params.yaml:
+        count_vectorizer.max_features: 6000
+        random_forest.max_depth: 30
+        random_forest.n_estimators: 42
+    outs:
+    - path: models/model.joblib
+      md5: 901d614fc8f1056e9f974c1081f022bb
+      size: 1281723
+  split_data:
+    cmd: python src/data/split_data.py --config=params.yaml
+    deps:
+    - path: data/raw/train.csv
+      md5: 4ac446c97f68184079f242aff16f3f30
+      size: 468915
+    - path: src/data/split_data.py
+      md5: 18c43b20ba9677a4637d8a1a621320fc
+      size: 1305
+    outs:
+    - path: data/processed/spam_test.csv
+      md5: 693eea13a8361290df61f5d12d03fc9c
+      size: 93035
+    - path: data/processed/spam_train.csv
+      md5: a6f224b648585860b130e888fd7fa6aa
+      size: 375894
+  model_train:
+    cmd: python src/models/train_model.py --config=params.yaml
+    deps:
+    - path: data/processed/spam_test.csv
+      md5: 693eea13a8361290df61f5d12d03fc9c
+      size: 93035
+    - path: data/processed/spam_train.csv
+      md5: a6f224b648585860b130e888fd7fa6aa
+      size: 375894
+    - path: src/models/train_model.py
+      md5: a50d7f786c272f9da2b99392586d9dab
+      size: 4152
+    params:
+      params.yaml:
+        count_vectorizer.max_features: 6000
+        random_forest.max_depth: 30
+        random_forest.n_estimators: 42

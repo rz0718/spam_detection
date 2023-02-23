@@ -24,11 +24,11 @@ mlflow_config:
 
 
 random_forest:
-  max_depth: 35
+  max_depth: 30
   n_estimators: 42
 
 count_vectorizer:
-  max_features: 5000
+  max_features: 6000
 
 model_dir: models/model.joblib
 
